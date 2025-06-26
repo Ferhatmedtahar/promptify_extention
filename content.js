@@ -135,91 +135,23 @@ async function setPromptText(platform, text) {
   }
 }
 
-// Get API key from IndexedDB with better error handling
-async function getApiKeyFromIndexedDB() {
-  return new Promise((resolve) => {
-    console.log("Content script: Getting API key from IndexedDB...");
-
-    try {
-      const request = indexedDB.open("PromptFixerDB", 1);
-
-      request.onsuccess = (event) => {
-        try {
-          const db = event.target.result;
-          const transaction = db.transaction(["settings"], "readonly");
-          const store = transaction.objectStore("settings");
-          const getRequest = store.get("gemini_api_key");
-
-          getRequest.onsuccess = (event) => {
-            const apiKey = event.target.result;
-            console.log(
-              "Content script: API key retrieved:",
-              apiKey ? "Found" : "Not found"
-            );
-            resolve(apiKey || null);
-          };
-
-          getRequest.onerror = (event) => {
-            console.error(
-              "Content script: Failed to get API key:",
-              event.target.error
-            );
-            resolve(null);
-          };
-        } catch (error) {
-          console.error("Content script: Transaction error:", error);
-          resolve(null);
-        }
-      };
-
-      request.onerror = (event) => {
-        console.error("Content script: IndexedDB error:", event.target.error);
-        resolve(null);
-      };
-
-      request.onupgradeneeded = (event) => {
-        const db = event.target.result;
-        if (!db.objectStoreNames.contains("settings")) {
-          db.createObjectStore("settings");
-        }
-      };
-    } catch (error) {
-      console.error("Content script: IndexedDB initialization error:", error);
-      resolve(null);
-    }
-  });
-}
-
+// Get API key from Chrome storage
 async function getApiKey() {
-  // Try IndexedDB first
-  const apiKey = await getApiKeyFromIndexedDB();
+  try {
+    console.log("Content script: Getting API key from Chrome storage...");
 
-  // Fallback to chrome.storage only if chrome is available
-  if (!apiKey && window.chrome && window.chrome.runtime) {
-    try {
-      return new Promise((resolve) => {
-        window.chrome.runtime.sendMessage(
-          { action: "getApiKey" },
-          (response) => {
-            if (window.chrome.runtime.lastError) {
-              console.warn(
-                "Chrome runtime error:",
-                window.chrome.runtime.lastError
-              );
-              resolve(null);
-            } else {
-              resolve(response?.apiKey || null);
-            }
-          }
-        );
-      });
-    } catch (error) {
-      console.error("Chrome API error:", error);
-      return null;
-    }
+    const result = await chrome.storage.local.get(["geminiApiKey"]);
+
+    console.log(
+      "Content script: API key retrieved:",
+      result.geminiApiKey ? "Found" : "Not found"
+    );
+
+    return result.geminiApiKey || null;
+  } catch (error) {
+    console.error("Content script: Error getting API key:", error);
+    return null;
   }
-
-  return apiKey;
 }
 
 async function fixPromptWithGemini(promptText) {
@@ -233,7 +165,7 @@ async function fixPromptWithGemini(promptText) {
     }
 
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${geminiApiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiApiKey}`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -432,6 +364,7 @@ function addStyles() {
   `;
   document.head.appendChild(style);
 }
+
 // Main initialization
 (async function init() {
   console.log("Prompt Fixer Extension loading...");

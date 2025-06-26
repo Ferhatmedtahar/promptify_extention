@@ -4,223 +4,43 @@ const saveBtn = document.getElementById("saveBtn");
 const statusMessage = document.getElementById("statusMessage");
 const btnText = document.querySelector(".btn-text");
 const loadingSpinner = document.querySelector(".loading-spinner");
-const chrome = window.chrome; // Declare the chrome variable
 
-// IndexedDB setup
-let db;
-const dbName = "PromptFixerDB";
-const dbVersion = 1;
-const storeName = "settings";
-const keyName = "gemini_api_key";
-
-// Initialize IndexedDB with better error handling
-function initDB() {
-  return new Promise((resolve, reject) => {
-    console.log("Initializing IndexedDB...");
-
-    try {
-      const request = indexedDB.open(dbName, dbVersion);
-
-      request.onupgradeneeded = (event) => {
-        console.log("Creating/upgrading database...");
-        db = event.target.result;
-
-        // Create object store if it doesn't exist
-        if (!db.objectStoreNames.contains(storeName)) {
-          const store = db.createObjectStore(storeName);
-          console.log("Created object store:", storeName);
-        }
-      };
-
-      request.onsuccess = (event) => {
-        db = event.target.result;
-        console.log("Database initialized successfully");
-
-        // Test the database by trying to read from it
-        testDatabase()
-          .then(() => {
-            resolve(db);
-          })
-          .catch((error) => {
-            console.warn("Database test failed:", error);
-            resolve(db); // Still resolve, but with warning
-          });
-      };
-
-      request.onerror = (event) => {
-        console.error("IndexedDB initialization error:", event.target.error);
-        reject(event.target.error);
-      };
-
-      request.onblocked = (event) => {
-        console.warn("IndexedDB blocked - close other tabs");
-        reject(new Error("Database blocked"));
-      };
-    } catch (error) {
-      console.error("IndexedDB setup error:", error);
-      reject(error);
-    }
-  });
-}
-
-// Test database functionality
-async function testDatabase() {
-  return new Promise((resolve, reject) => {
-    try {
-      const transaction = db.transaction([storeName], "readonly");
-      const store = transaction.objectStore(storeName);
-      const request = store.get("test_key");
-
-      request.onsuccess = () => {
-        console.log("Database test successful");
-        resolve(true);
-      };
-
-      request.onerror = (event) => {
-        console.error("Database test failed:", event.target.error);
-        reject(event.target.error);
-      };
-    } catch (error) {
-      reject(error);
-    }
-  });
-}
-
-// Load API key from IndexedDB
+// Load API key from Chrome storage
 async function loadApiKey() {
   try {
-    console.log("Loading API key from IndexedDB...");
-    if (!db) {
-      await initDB();
+    console.log("Loading API key from Chrome storage...");
+
+    const result = await chrome.storage.local.get(["geminiApiKey"]);
+
+    if (result.geminiApiKey) {
+      apiKeyInput.value = result.geminiApiKey;
+      showStatus("API key loaded successfully!", "success");
+      console.log("API key loaded from storage");
+    } else {
+      console.log("No API key found in storage");
     }
 
-    const transaction = db.transaction([storeName], "readonly");
-    const store = transaction.objectStore(storeName);
-    const request = store.get(keyName);
-
-    return new Promise((resolve) => {
-      request.onsuccess = (event) => {
-        const apiKey = event.target.result;
-        console.log("API key loaded:", apiKey ? "Found" : "Not found");
-        if (apiKey) {
-          apiKeyInput.value = apiKey;
-          showStatus("API key loaded successfully!", "success");
-        }
-        resolve(apiKey);
-      };
-
-      request.onerror = (event) => {
-        console.error(
-          "Failed to load API key from IndexedDB:",
-          event.target.error
-        );
-        resolve(null);
-      };
-    });
+    return result.geminiApiKey;
   } catch (error) {
     console.error("Error loading API key:", error);
+    showStatus("Failed to load API key", "error");
     return null;
   }
 }
 
-// Save API key with comprehensive error handling
+// Save API key to Chrome storage
 async function saveApiKey(apiKey) {
   try {
-    console.log("Saving API key to IndexedDB...");
+    console.log("Saving API key to Chrome storage...");
 
-    if (!db) {
-      console.log("Database not initialized, initializing now...");
-      await initDB();
-    }
+    await chrome.storage.local.set({ geminiApiKey: apiKey });
 
-    return new Promise((resolve, reject) => {
-      try {
-        const transaction = db.transaction([storeName], "readwrite");
-        const store = transaction.objectStore(storeName);
-        const request = store.put(apiKey, keyName);
-
-        transaction.oncomplete = () => {
-          console.log("Transaction completed successfully");
-
-          // Verify the save by reading it back
-          verifyApiKeySaved(apiKey)
-            .then((verified) => {
-              if (verified) {
-                console.log("API key verified in database");
-
-                // Also save to chrome.storage as backup
-                if (typeof chrome !== "undefined" && chrome.runtime) {
-                  chrome.runtime.sendMessage(
-                    {
-                      action: "setApiKey",
-                      apiKey: apiKey,
-                    },
-                    (response) => {
-                      if (chrome.runtime.lastError) {
-                        console.warn(
-                          "Chrome storage backup failed:",
-                          chrome.runtime.lastError
-                        );
-                      } else {
-                        console.log("API key also saved to chrome.storage");
-                      }
-                      resolve(true);
-                    }
-                  );
-                } else {
-                  resolve(true);
-                }
-              } else {
-                reject(new Error("Failed to verify API key save"));
-              }
-            })
-            .catch(reject);
-        };
-
-        transaction.onerror = (event) => {
-          console.error("Transaction failed:", event.target.error);
-          reject(new Error("Failed to save API key to IndexedDB"));
-        };
-
-        request.onerror = (event) => {
-          console.error("Put request failed:", event.target.error);
-          reject(new Error("Failed to save API key to IndexedDB"));
-        };
-      } catch (error) {
-        console.error("Save operation error:", error);
-        reject(error);
-      }
-    });
+    console.log("API key saved successfully");
+    return true;
   } catch (error) {
-    console.error("Error in saveApiKey:", error);
-    throw error;
+    console.error("Error saving API key:", error);
+    throw new Error("Failed to save API key to storage");
   }
-}
-
-// Verify API key was saved correctly
-async function verifyApiKeySaved(expectedKey) {
-  return new Promise((resolve) => {
-    try {
-      const transaction = db.transaction([storeName], "readonly");
-      const store = transaction.objectStore(storeName);
-      const request = store.get(keyName);
-
-      request.onsuccess = (event) => {
-        const savedKey = event.target.result;
-        const isMatch = savedKey === expectedKey;
-        console.log("Verification result:", isMatch ? "SUCCESS" : "FAILED");
-        resolve(isMatch);
-      };
-
-      request.onerror = () => {
-        console.error("Verification failed");
-        resolve(false);
-      };
-    } catch (error) {
-      console.error("Verification error:", error);
-      resolve(false);
-    }
-  });
 }
 
 // Test API key validity
@@ -228,7 +48,7 @@ async function testApiKey(apiKey) {
   try {
     console.log("Testing API key...");
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -312,9 +132,7 @@ saveBtn.addEventListener("click", async () => {
 
       // Close popup after 3 seconds
       setTimeout(() => {
-        if (window.close) {
-          window.close();
-        }
+        window.close();
       }, 3000);
     } else {
       throw new Error("Invalid API key - please check your key and try again");
@@ -334,18 +152,10 @@ apiKeyInput.addEventListener("keypress", (e) => {
   }
 });
 
-// Debug function to check stored data
 async function debugStorage() {
   try {
-    if (!db) await initDB();
-
-    const transaction = db.transaction([storeName], "readonly");
-    const store = transaction.objectStore(storeName);
-    const request = store.getAll();
-
-    request.onsuccess = (event) => {
-      console.log("All stored data:", event.target.result);
-    };
+    const result = await chrome.storage.local.get(null);
+    console.log("All stored data:", result);
   } catch (error) {
     console.error("Debug storage error:", error);
   }
@@ -356,7 +166,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   console.log("Popup loaded, initializing...");
 
   try {
-    await initDB();
     await loadApiKey();
 
     // Debug: log current storage state
