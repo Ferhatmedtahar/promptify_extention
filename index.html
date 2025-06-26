@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Prompt Fixer - Settings</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+      }
+
+      .container {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        padding: 40px;
+        max-width: 500px;
+        width: 100%;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .container::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #10a37f, #cc785c, #000000);
+      }
+
+      .logo {
+        font-size: 48px;
+        margin-bottom: 20px;
+        background: linear-gradient(135deg, #10a37f, #cc785c);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      h1 {
+        color: #333;
+        margin-bottom: 10px;
+        font-size: 28px;
+        font-weight: 600;
+      }
+
+      .subtitle {
+        color: #666;
+        margin-bottom: 30px;
+        font-size: 16px;
+        line-height: 1.5;
+      }
+
+      .api-section {
+        background: #f8f9fa;
+        border-radius: 12px;
+        padding: 25px;
+        margin-bottom: 25px;
+        border: 2px solid #e9ecef;
+        transition: border-color 0.3s ease;
+      }
+
+      .api-section:focus-within {
+        border-color: #10a37f;
+      }
+
+      .api-label {
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 15px;
+        display: block;
+        font-size: 16px;
+      }
+
+      .api-input {
+        width: 100%;
+        padding: 12px 16px;
+        border: 2px solid #e9ecef;
+        border-radius: 8px;
+        font-size: 14px;
+        transition: all 0.3s ease;
+        background: white;
+      }
+
+      .api-input:focus {
+        outline: none;
+        border-color: #10a37f;
+        box-shadow: 0 0 0 3px rgba(16, 163, 127, 0.1);
+      }
+
+      .get-key-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: #4285f4;
+        color: white;
+        text-decoration: none;
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-weight: 500;
+        margin-top: 12px;
+        transition: all 0.3s ease;
+        font-size: 14px;
+      }
+
+      .get-key-btn:hover {
+        background: #3367d6;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(66, 133, 244, 0.3);
+      }
+
+      .save-btn {
+        background: linear-gradient(135deg, #10a37f, #0d8c6b);
+        color: white;
+        border: none;
+        padding: 14px 30px;
+        border-radius: 10px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        width: 100%;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .save-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(16, 163, 127, 0.3);
+      }
+
+      .save-btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+      }
+
+      .status-message {
+        margin-top: 20px;
+        padding: 12px;
+        border-radius: 8px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+      }
+
+      .status-success {
+        background: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+      }
+
+      .status-error {
+        background: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+      }
+
+      .features {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 15px;
+        margin-top: 30px;
+      }
+
+      .feature {
+        background: #f8f9fa;
+        padding: 15px;
+        border-radius: 10px;
+        border: 1px solid #e9ecef;
+      }
+
+      .feature-icon {
+        font-size: 24px;
+        margin-bottom: 8px;
+      }
+
+      .feature-text {
+        font-size: 12px;
+        color: #666;
+        font-weight: 500;
+      }
+
+      .loading-spinner {
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        border: 2px solid #ffffff;
+        border-radius: 50%;
+        border-top-color: transparent;
+        animation: spin 1s ease-in-out infinite;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      .hidden {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="logo">✨</div>
+      <h1>Prompt Fixer</h1>
+      <p class="subtitle">
+        Enhance your AI prompts with Gemini AI<br />Works on ChatGPT, Claude,
+        and V0.dev
+      </p>
+
+      <div class="api-section">
+        <label class="api-label" for="apiKey">Gemini API Key</label>
+        <input
+          type="password"
+          id="apiKey"
+          class="api-input"
+          placeholder="Enter your Gemini API key..."
+          autocomplete="off"
+        />
+        <a
+          href="https://aistudio.google.com/apikey"
+          target="_blank"
+          class="get-key-btn"
+        >
+          🔑 Get API Key from Google AI Studio
+        </a>
+      </div>
+
+      <button id="saveBtn" class="save-btn">
+        <span class="btn-text">Save & Continue</span>
+        <span class="loading-spinner hidden"></span>
+      </button>
+
+      <div id="statusMessage" class="status-message hidden"></div>
+
+      <div class="features">
+        <div class="feature">
+          <div class="feature-icon">💬</div>
+          <div class="feature-text">ChatGPT</div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">🤖</div>
+          <div class="feature-text">Claude</div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">⚡</div>
+          <div class="feature-text">V0.dev</div>
+        </div>
+      </div>
+    </div>
+
+    <script src="./popup.js"></script>
+  </body>
+</html>

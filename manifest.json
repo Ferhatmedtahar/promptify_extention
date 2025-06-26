@@ -1,0 +1,33 @@
+{
+  "manifest_version": 3,
+  "name": "Prompt Fixer",
+  "version": "1.0.0",
+  "description": "Enhance your AI prompts with Gemini AI. Works on ChatGPT, Claude, and V0.dev",
+  "permissions": ["storage", "activeTab", "tabs"],
+  "host_permissions": [
+    "https://chatgpt.com/*",
+    "https://chat.openai.com/*",
+    "https://claude.ai/*",
+    "https://v0.dev/*",
+    "https://generativelanguage.googleapis.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://chatgpt.com/*",
+        "https://chat.openai.com/*",
+        "https://claude.ai/*",
+        "https://v0.dev/*"
+      ],
+      "js": ["content.js"],
+      "run_at": "document_end"
+    }
+  ],
+  "action": {
+    "default_popup": "index.html",
+    "default_title": "Prompt Fixer Settings"
+  }
+}
