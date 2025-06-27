@@ -33,35 +33,37 @@ function createFixButton(platform) {
     fontFamily: "system-ui, -apple-system, sans-serif",
     boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
     backdropFilter: "blur(10px)",
-    top: "40px",
-    right: "40px",
     color: "white",
+    right: "10px",
   };
 
   const platformStyles = {
     chatgpt: {
       backgroundColor: "#10a37f",
+      top: "60px",
     },
     claude: {
       backgroundColor: "#cc785c",
+      top: "50px",
     },
     v0: {
       backgroundColor: "#000000",
+      border: "1px solid #ffffff77",
+      top: "50px",
     },
     gemini: {
       backgroundColor: "#4d83ef",
+      top: "70px",
     },
   };
 
   Object.assign(button.style, baseStyles, platformStyles[platform]);
 
   button.addEventListener("mouseenter", () => {
-    button.style.transform = "translateY(-2px)";
     button.style.boxShadow = "0 4px 12px rgba(0,0,0,0.2)";
   });
 
   button.addEventListener("mouseleave", () => {
-    button.style.transform = "translateY(0)";
     button.style.boxShadow = "0 2px 8px rgba(0,0,0,0.15)";
   });
 
