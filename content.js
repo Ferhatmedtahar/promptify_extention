@@ -66,6 +66,7 @@ function createFixButton(platform) {
 
   button.addEventListener("mouseleave", () => {
     button.style.transform = "translateY(0)";
+    m;
     button.style.boxShadow = "0 2px 8px rgba(0,0,0,0.15)";
   });
 
@@ -231,8 +232,7 @@ Return ONLY the improved prompt without any explanation, meta-commentary, or add
           ],
           generationConfig: {
             temperature: 0.7,
-            maxOutputTokens: 2000,
-            minOutputTokens: 150,
+            maxOutputTokens: 10000,
           },
         }),
       }
