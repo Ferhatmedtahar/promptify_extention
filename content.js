@@ -1,6 +1,3 @@
-// Universal AI Chat Prompt Fixer Extension
-// Works with ChatGPT, Claude, and v0
-
 function waitForElement(selector, timeout = 10000) {
   return new Promise((resolve, reject) => {
     const startTime = Date.now();
@@ -20,10 +17,9 @@ function waitForElement(selector, timeout = 10000) {
 
 function createFixButton(platform) {
   const button = document.createElement("button");
-  button.textContent = "✨ Fix Prompt";
+  button.textContent = "Fix Prompt";
   button.id = `fix-prompt-button-${platform}`;
 
-  // Base styles
   const baseStyles = {
     position: "fixed",
     zIndex: "9999",
@@ -39,7 +35,6 @@ function createFixButton(platform) {
     backdropFilter: "blur(10px)",
   };
 
-  // Platform-specific styles and positioning
   const platformStyles = {
     chatgpt: {
       top: "20px",
@@ -59,12 +54,16 @@ function createFixButton(platform) {
       backgroundColor: "#000000",
       color: "white",
     },
+    gemini: {
+      top: "20px",
+      right: "20px",
+      backgroundColor: "#4285f4",
+      color: "white",
+    },
   };
 
-  // Apply styles
   Object.assign(button.style, baseStyles, platformStyles[platform]);
 
-  // Hover effects
   button.addEventListener("mouseenter", () => {
     button.style.transform = "translateY(-2px)";
     button.style.boxShadow = "0 4px 12px rgba(0,0,0,0.2)";
@@ -94,6 +93,20 @@ async function getPromptText(platform) {
         document.querySelector('textarea[placeholder*="chat"]') ||
         document.querySelector("textarea");
       return v0Input ? v0Input.value.trim() : "";
+
+    case "gemini":
+      const geminiInput =
+        document.querySelector('.ql-editor[contenteditable="true"]') ||
+        document.querySelector('div[contenteditable="true"][role="textbox"]') ||
+        document.querySelector(".text-input-field_textarea .ql-editor") ||
+        document.querySelector("rich-textarea .ql-editor");
+
+      if (geminiInput) {
+        return (
+          geminiInput.innerText?.trim() || geminiInput.textContent?.trim() || ""
+        );
+      }
+      return "";
 
     default:
       return "";
@@ -132,10 +145,35 @@ async function setPromptText(platform, text) {
         v0Input.dispatchEvent(new Event("change", { bubbles: true }));
       }
       break;
+
+    case "gemini":
+      const geminiInput =
+        document.querySelector('.ql-editor[contenteditable="true"]') ||
+        document.querySelector('div[contenteditable="true"][role="textbox"]') ||
+        document.querySelector(".text-input-field_textarea .ql-editor") ||
+        document.querySelector("rich-textarea .ql-editor");
+
+      if (geminiInput) {
+        geminiInput.innerHTML = "";
+        geminiInput.innerHTML = `<p>${text}</p>`;
+        geminiInput.focus();
+        geminiInput.dispatchEvent(new Event("input", { bubbles: true }));
+        geminiInput.dispatchEvent(new Event("change", { bubbles: true }));
+        geminiInput.dispatchEvent(
+          new KeyboardEvent("keyup", { bubbles: true })
+        );
+
+        const range = document.createRange();
+        const selection = window.getSelection();
+        range.selectNodeContents(geminiInput);
+        range.collapse(false);
+        selection.removeAllRanges();
+        selection.addRange(range);
+      }
+      break;
   }
 }
 
-// Get API key from Chrome storage
 async function getApiKey() {
   try {
     console.log("Content script: Getting API key from Chrome storage...");
@@ -222,7 +260,6 @@ Please provide only the improved prompt without any explanation or additional te
 }
 
 function showNotification(message, type = "info") {
-  // Remove existing notifications
   const existingNotifications = document.querySelectorAll(
     ".prompt-fixer-notification"
   );
@@ -272,6 +309,8 @@ function detectPlatform() {
     return "claude";
   } else if (hostname.includes("v0.dev")) {
     return "v0";
+  } else if (hostname.includes("gemini.google.com")) {
+    return "gemini";
   }
 
   return null;
@@ -279,28 +318,27 @@ function detectPlatform() {
 
 async function initPlatformSpecific(platform) {
   try {
-    // Platform-specific selectors to wait for
     const selectors = {
       chatgpt: ".ProseMirror",
       claude: ".ProseMirror",
       v0: "textarea",
+      gemini:
+        '.ql-editor[contenteditable="true"], div[contenteditable="true"][role="textbox"]',
     };
 
     console.log(`Initializing Prompt Fixer for ${platform}...`);
-
-    // Wait for the input element to be available
     await waitForElement(selectors[platform]);
+    if (platform === "gemini") {
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+    }
 
-    // Check if button already exists
     if (document.getElementById(`fix-prompt-button-${platform}`)) {
       return;
     }
 
-    // Create and add the fix button
     const button = createFixButton(platform);
     document.body.appendChild(button);
 
-    // Add click handler
     button.addEventListener("click", async () => {
       try {
         button.disabled = true;
@@ -333,7 +371,6 @@ async function initPlatformSpecific(platform) {
   }
 }
 
-// Add CSS animations
 function addStyles() {
   if (document.getElementById("prompt-fixer-styles")) return;
 
@@ -365,7 +402,6 @@ function addStyles() {
   document.head.appendChild(style);
 }
 
-// Main initialization
 (async function init() {
   console.log("Prompt Fixer Extension loading...");
 
@@ -374,14 +410,9 @@ function addStyles() {
   const platform = detectPlatform();
 
   if (platform) {
-    console.log(`Platform detected: ${platform}`);
-
-    // Initialize immediately
     await initPlatformSpecific(platform);
 
-    // Also observe for dynamic content changes (SPA navigation)
     const observer = new MutationObserver(() => {
-      // Re-initialize if button is missing
       if (!document.getElementById(`fix-prompt-button-${platform}`)) {
         initPlatformSpecific(platform);
       }

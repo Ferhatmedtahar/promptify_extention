@@ -1,15 +1,16 @@
 {
   "manifest_version": 3,
-  "name": "Prompt Fixer",
+  "name": "Promptify",
   "version": "1.0.0",
-  "description": "Enhance your AI prompts with Gemini AI. Works on ChatGPT, Claude, and V0.dev",
+  "description": "Enhance your AI prompts with Gemini AI. Works on ChatGPT, Claude, and V0.dev, and Gemini itself.",
   "permissions": ["storage", "activeTab", "tabs"],
   "host_permissions": [
     "https://chatgpt.com/*",
     "https://chat.openai.com/*",
     "https://claude.ai/*",
     "https://v0.dev/*",
-    "https://generativelanguage.googleapis.com/*"
+    "https://generativelanguage.googleapis.com/*",
+    "https://gemini.google.com/app"
   ],
   "background": {
     "service_worker": "background.js"
@@ -20,7 +21,9 @@
         "https://chatgpt.com/*",
         "https://chat.openai.com/*",
         "https://claude.ai/*",
-        "https://v0.dev/*"
+        "https://v0.dev/*",
+        "https://generativelanguage.googleapis.com/*",
+        "https://gemini.google.com/app/*"
       ],
       "js": ["content.js"],
       "run_at": "document_end"

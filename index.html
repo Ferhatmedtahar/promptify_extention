@@ -189,7 +189,13 @@
         font-size: 24px;
         margin-bottom: 8px;
       }
-
+      .feature-icon img {
+        width: 40px;
+        height: 40px;
+        object-fit: contain;
+        display: block;
+        margin: 0 auto;
+      }
       .feature-text {
         font-size: 12px;
         color: #666;
@@ -253,16 +259,28 @@
 
       <div class="features">
         <div class="feature">
-          <div class="feature-icon">💬</div>
+          <div class="feature-icon">
+            <img src="./icons/icons8-chatgpt-50.png" alt="ChatGPT Icon" />
+          </div>
           <div class="feature-text">ChatGPT</div>
         </div>
         <div class="feature">
-          <div class="feature-icon">🤖</div>
+          <div class="feature-icon">
+            <img src="./icons/claude-ai-icon.svg" alt="Claude Icon" />
+          </div>
           <div class="feature-text">Claude</div>
         </div>
         <div class="feature">
-          <div class="feature-icon">⚡</div>
+          <div class="feature-icon">
+            <img src="./icons/v0.svg" alt="V0.dev Icon" />
+          </div>
           <div class="feature-text">V0.dev</div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">
+            <img src="./icons/gemini-color.svg" alt="Gemini Icon" />
+          </div>
+          <div class="feature-text">Gemini</div>
         </div>
       </div>
     </div>
