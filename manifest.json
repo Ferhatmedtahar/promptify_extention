@@ -31,6 +31,6 @@
   ],
   "action": {
     "default_popup": "index.html",
-    "default_title": "Prompt Fixer Settings"
+    "default_title": "Promptify Settings"
   }
 }

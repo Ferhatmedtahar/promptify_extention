@@ -1,5 +1,5 @@
 chrome.runtime.onInstalled.addListener(() => {
-  console.log("Prompt Fixer Extension installed");
+  console.log("Promptify Extension installed");
 });
 
 chrome.action.onClicked.addListener((tab) => {

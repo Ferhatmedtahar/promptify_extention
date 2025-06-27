@@ -33,32 +33,23 @@ function createFixButton(platform) {
     fontFamily: "system-ui, -apple-system, sans-serif",
     boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
     backdropFilter: "blur(10px)",
+    top: "40px",
+    right: "40px",
+    color: "white",
   };
 
   const platformStyles = {
     chatgpt: {
-      top: "20px",
-      right: "20px",
       backgroundColor: "#10a37f",
-      color: "white",
     },
     claude: {
-      top: "20px",
-      right: "20px",
       backgroundColor: "#cc785c",
-      color: "white",
     },
     v0: {
-      top: "20px",
-      right: "20px",
       backgroundColor: "#000000",
-      color: "white",
     },
     gemini: {
-      top: "20px",
-      right: "20px",
-      backgroundColor: "#4285f4",
-      color: "white",
+      backgroundColor: "#4d83ef",
     },
   };
 
@@ -212,25 +203,32 @@ async function fixPromptWithGemini(promptText) {
             {
               parts: [
                 {
-                  text: `Please improve this prompt to make it clearer, more specific, and more effective for AI assistants. Follow these guidelines:
+                  text: `You are an expert prompt engineer who specializes in transforming generic user inputs into highly effective, domain-specific prompts for AI assistants. 
 
-1. Make the request more specific and detailed
-2. Add context if needed
-3. Structure it properly with clear instructions
-4. Keep the original intent but enhance clarity
-5. Use best practices for AI prompting
+Your task is to analyze the following user input and create an optimized prompt that will achieve maximum results. The input might be generic or vague, but you should:
 
-Original prompt:
-${promptText}
+1. **Identify the domain/field** (frontend, backend, design, writing, data analysis, etc.) based on context clues
+2. **Determine the user's likely intent** and desired outcome
+3. **Add relevant context** and technical specifications where appropriate
+4. **Structure the prompt** with clear instructions, examples, and success criteria
+5. **Include best practices** for that specific domain
+6. **Make it actionable** with specific deliverables and format requirements
+7. **Add constraints and guidelines** to ensure quality output
+8. **If code snippets are involved**, ensure they are well-commented and follow best practices for that language
 
-Please provide only the improved prompt without any explanation or additional text.`,
+Transform this input into a professional, detailed prompt that an expert in the relevant field would use:
+
+Original input: "${promptText}"
+
+Return ONLY the improved prompt without any explanation, meta-commentary, or additional text. The output should be a complete, standalone prompt ready to use.`,
                 },
               ],
             },
           ],
           generationConfig: {
             temperature: 0.7,
-            maxOutputTokens: 1000,
+            maxOutputTokens: 2000,
+            minOutputTokens: 150,
           },
         }),
       }
@@ -326,7 +324,6 @@ async function initPlatformSpecific(platform) {
         '.ql-editor[contenteditable="true"], div[contenteditable="true"][role="textbox"]',
     };
 
-    console.log(`Initializing Prompt Fixer for ${platform}...`);
     await waitForElement(selectors[platform]);
     if (platform === "gemini") {
       await new Promise((resolve) => setTimeout(resolve, 2000));
@@ -364,8 +361,6 @@ async function initPlatformSpecific(platform) {
         button.textContent = "✨ Fix Prompt";
       }
     });
-
-    console.log(`Prompt Fixer button injected for ${platform}`);
   } catch (error) {
     console.error(`Failed to initialize for ${platform}:`, error);
   }
@@ -403,12 +398,8 @@ function addStyles() {
 }
 
 (async function init() {
-  console.log("Prompt Fixer Extension loading...");
-
   addStyles();
-
   const platform = detectPlatform();
-
   if (platform) {
     await initPlatformSpecific(platform);
 
@@ -423,6 +414,8 @@ function addStyles() {
       subtree: true,
     });
   } else {
-    console.log("Platform not supported");
+    console.warn(
+      "Unsupported platform detected. No prompt fix button will be added."
+    );
   }
 })();
