@@ -61,9 +61,11 @@ function createFixButton(platform) {
 
   button.addEventListener("mouseenter", () => {
     button.style.boxShadow = "0 4px 12px rgba(0,0,0,0.2)";
+    button.style.transform = "translateY(-1px)";
   });
 
   button.addEventListener("mouseleave", () => {
+    button.style.transform = "translateY(0)";
     button.style.boxShadow = "0 2px 8px rgba(0,0,0,0.15)";
   });
 
